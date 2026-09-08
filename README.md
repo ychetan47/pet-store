@@ -1,424 +1,238 @@
-# 🐾 Paws & Claws — Pet Store E-Commerce Platform
+# 🐾 Paws & Claws — Pet Store E-Commerce Platform (V4 Production-Grade Architecture)
 
-A production-grade, full-stack e-commerce platform for pet food, accessories, toys, and grooming products (supporting **Dogs** and **Cats**). Built with a **Spring Boot 3 (Java 17)** modular monolith backend and a modern, high-performance **React (TypeScript + Vite)** frontend, fully containerized with **Docker & Docker Compose**.
+A production-grade, distributed microservices e-commerce platform for pet food and accessories (supporting **Dogs** and **Cats**). Features a customer-facing storefront, a dedicated administrative management portal, an intelligent API Gateway, independent Spring Boot microservices backed by database-per-service PostgreSQL databases, an **event-driven architecture powered by Apache Kafka (KRaft mode)** with **Transactional Outbox**, and full **Production-Grade Observability & Resilience (ELK, OpenTelemetry, Prometheus, Grafana, Resilience4j, Rate Limiting)**.
 
 ---
 
 ## 📑 Table of Contents
 
-- [Overview & Key Features](#-overview--key-features)
-- [System Architecture](#-system-architecture)
-- [Tech Stack](#-tech-stack)
-- [Repository Structure](#-repository-structure)
-- [Quick Start: Running with Docker (Recommended)](#-quick-start-running-with-docker-recommended)
-- [Local Bare-Metal Setup](#-local-bare-metal-setup)
-- [Database Schema & Migrations](#-database-schema--migrations)
-- [Environment Variables & Configuration](#-environment-variables--configuration)
+- [V4 Observability & Resilience Highlights](#-v4-observability--resilience-highlights)
+- [System Architecture Diagram](#-system-architecture-diagram)
+- [Services & Port Directory](#-services--port-directory)
+- [Observability & Monitoring Infrastructure](#-observability--monitoring-infrastructure)
+  - [Centralized Logging (ELK Stack)](#centralized-logging-elk-stack)
+  - [Distributed Tracing (OpenTelemetry)](#distributed-tracing-opentelemetry)
+  - [Prometheus Metrics & Micrometer](#prometheus-metrics--micrometer)
+  - [Grafana Pre-Provisioned Dashboards](#grafana-pre-provisioned-dashboards)
+- [Resilience & Fault Tolerance](#-resilience--fault-tolerance)
+  - [Resilience4j Circuit Breakers & Retries](#resilience4j-circuit-breakers--retries)
+  - [API Gateway Rate Limiting](#api-gateway-rate-limiting)
+  - [Graceful Shutdown & Health Probes](#graceful-shutdown--health-probes)
+- [Event Choreography & Kafka Architecture](#-event-choreography--kafka-architecture)
+- [Quick Start: Running with Docker Compose](#-quick-start-running-with-docker-compose)
+- [Default Credentials & Access Links](#-default-credentials--access-links)
 - [Interactive API Docs (Swagger / OpenAPI 3)](#-interactive-api-docs-swagger--openapi-3)
-- [REST API Reference & cURL Examples](#-rest-api-reference--curl-examples)
-- [Running Automated Tests](#-running-automated-tests)
-- [Production & Container Details](#-production--container-details)
+- [Verification & Automated Tests](#-verification--automated-tests)
 
 ---
 
-## 🌟 Overview & Key Features
+## 🌟 V4 Observability & Resilience Highlights
 
-### Customer Shopping Experience
-- **Hierarchical Category Tree**: Seamless multi-level catalog navigation for Dogs & Cats with subcategories (Food, Accessories, Toys, Grooming, Dry/Wet Food, etc.).
-- **Dynamic Product Filtering & Search**: Instant filtering by pet type, category subtree, brand, price range, stock availability, and sorting (price low-to-high, high-to-low, newest).
-- **Persistent Cart & Stock Sync**: Authenticated shopping cart with instant quantity updates and real-time inventory validation.
-- **Address Book Management**: Multi-address support with default shipping address selection.
-- **Transactional COD Checkout**: Cash-on-delivery ordering with pessimistic inventory reservation to guarantee zero overselling.
-- **Order Tracking & Eligible Cancellation**: Order lifecycle history with the ability to cancel eligible orders (`PLACED` or `CONFIRMED`), automatically restoring product stock.
+V4 brings true enterprise, production-ready observability and fault tolerance to the Pet Store microservices platform:
 
-### Enterprise Architecture Highlights
-- **Concurrency & Inventory Safety**: Checkout operations utilize **JPA Pessimistic Write Locking** (`@Lock(LockModeType.PESSIMISTIC_WRITE)`) on the product stock to eliminate race conditions and double-selling under concurrent checkouts.
-- **Historical Order Snapshots**: Order line items store point-in-time product names, images, and prices, insulating past transactions from catalog modifications.
-- **Clean Storage Abstraction**: Pluggable `StorageService` interface ready for Google Cloud Storage (GCS) and local asset fallbacks.
-- **Containerized Reverse Proxy**: Nginx reverse proxies API traffic and Swagger docs internally to backend services, avoiding cross-origin overhead and providing SPA routing.
+1. **Centralized Logging (ELK Stack)**:
+   - All 6 backend services stream structured JSON log events over non-blocking TCP socket (`LogstashTcpSocketAppender`) to **Logstash** on port `5000`.
+   - Logstash enriches and routes logs into **Elasticsearch 8.11.3** (`petstore-logs-%{+YYYY.MM.dd}`).
+   - **Kibana 8.11.3** pre-configured with the `petstore-logs-*` Data View for instant discovery and correlation.
+   - Unified log format outputting `[service, traceId, spanId, correlationId, level, message, logger, thread, stackTrace]`.
+
+2. **Distributed Tracing (OpenTelemetry)**:
+   - End-to-end W3C Trace Context (`traceparent`) propagation across HTTP gateway calls, inter-service calls, and Kafka event record headers.
+   - Backed by **Micrometer Tracing**, **OpenTelemetry Bridge**, and native Spring Kafka Observation.
+   - **OpenTelemetry Collector Contrib** receiving OTLP traces on gRPC (`4317`) and HTTP (`4318`) with batch processing.
+
+3. **Metrics & Prometheus Scrapes**:
+   - Every service exposes `/actuator/prometheus` scraping endpoints with standard JVM, CPU, memory, HikariCP database pool, and Spring HTTP metrics.
+   - Custom business metrics: `orders_created_total`, `orders_confirmed_total`, `orders_cancelled_total`, `outbox_pending_count`, `outbox_published_total`, `inventory_stock_reserved_total`, `inventory_stock_reservation_failed_total`, `notifications_processed_total`, `dlt_messages_total`, and `rate_limit_exceeded_total`.
+   - Prometheus server actively scraping all 6 microservices at 5s intervals.
+
+4. **Grafana Dashboards (Pre-provisioned & Automated)**:
+   - **Pet Store - Application Overview (`petstore-overview`)**: Service UP statuses, HTTP req/s, 5xx error rate, P95 latency, rate-limiting drops.
+   - **Pet Store - JVM & System Performance (`petstore-jvm`)**: Heap memory, CPU usage, GC activity, thread counts, Hikari connection pool saturation.
+   - **Pet Store - Kafka Observability & DLT (`petstore-kafka`)**: Producer/consumer message rates, Dead Letter Topic (DLT) counts, notification throughput.
+   - **Pet Store - Business Metrics & Outbox Pattern (`petstore-business`)**: Outbox backlog gauge, order state transitions, stock reservation success vs. failures.
+
+5. **Resilience4j Fault Tolerance**:
+   - `ProductCatalogClient` in `order-service` guarded with `@CircuitBreaker`, `@Retry` with exponential backoff, `@Bulkhead`, and connect/read timeouts.
+   - Graceful fallback handlers prevent cascading failures if catalog-service is under load or down.
+
+6. **API Gateway In-Memory Rate Limiting**:
+   - Token Bucket rate limiter on Spring Cloud Gateway protecting sensitive endpoints (`/api/auth/**`, `/api/orders/**`, `/api/products/**`).
+   - Returns HTTP `429 Too Many Requests` with `Retry-After: 30` header and records Prometheus metric `rate_limit_exceeded_total`.
 
 ---
 
-## 🏛️ System Architecture
+## 🏛️ System Architecture Diagram
 
 ```mermaid
 graph TD
-    Client["Browser / Client (Desktop & Mobile)"]
-    
-    subgraph Docker Network: petstore-network
-        Nginx["Nginx Reverse Proxy & Static Asset Server (Port 5173 / 80)"]
-        SPA["React + TypeScript SPA (Vite Build)"]
-        Backend["Spring Boot 3 API Server (Java 17 JRE) (Port 8080)"]
-        DB[(PostgreSQL 16 Database) (Port 5432)]
+    User["Web Shopper / Admin"] -->|HTTP / SPA| Gateway["API Gateway (Port 8080)<br/>• RateLimitingFilter (429)<br/>• CorrelationIdFilter<br/>• JwtAuthFilter<br/>• InternalPathBlock"]
+
+    subgraph Observability Stack
+        Logstash["Logstash (Port 5001->5000)"] -->|Bulk Index| ES["Elasticsearch 8.11 (Port 9200)"]
+        ES --> Kibana["Kibana UI (Port 5601)"]
+        OTel["OTel Collector (Port 4317/4318)"]
+        Prometheus["Prometheus (Port 9090)"] -->|Scrapes /actuator/prometheus| Microservices
+        Prometheus --> Grafana["Grafana UI (Port 3000)"]
     end
 
-    Client -->|HTTP :5173| Nginx
-    Nginx -->|Serves Static Files| SPA
-    Nginx -->|Proxies /api & /swagger-ui| Backend
-    Backend -->|JDBC / HikariCP| DB
-    Backend -->|Storage Abstraction| GCS["Cloud Storage / Local Media"]
+    subgraph Microservices Layer
+        UserService["User Service (8081)"]
+        CatalogService["Catalog Service (8082)"]
+        OrderService["Order Service (8083)<br/>[Resilience4j CB & Retry]"]
+        InventoryService["Inventory Service (8084)"]
+        NotificationService["Notification Service (8085)"]
+    end
+
+    Gateway --> UserService
+    Gateway --> CatalogService
+    Gateway --> OrderService
+    Gateway --> InventoryService
+
+    OrderService -.->|Resilience4j Guarded REST| CatalogService
+    OrderService -.->|Transactional Outbox| Kafka["Apache Kafka 3.7 (KRaft, Port 9092)"]
+    InventoryService -.->|Transactional Outbox| Kafka
+    Kafka -.->|Events: order.events| InventoryService
+    Kafka -.->|Events: inventory.events| OrderService
+    Kafka -.->|Events: order.events| NotificationService
+
+    Microservices -.->|TCP JSON Logs| Logstash
+    Microservices -.->|OTLP Traces| OTel
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## 🧭 Services & Port Directory
 
-### Frontend
-- **Framework**: React 18 / 19 with TypeScript
-- **Build Tool**: Vite 6 (Fast HMR & optimized production bundling)
-- **Routing**: React Router 6 (SPA with history API fallback)
-- **HTTP Client**: Axios (configured with JWT auth interceptor and 401 handling)
-- **Design System**: Vanilla CSS tokens & utilities (Responsive CSS Grid/Flexbox, glassmorphism, Google Fonts Outfit & Plus Jakarta Sans)
-
-### Backend
-- **Language & Runtime**: Java 17 (Eclipse Temurin)
-- **Framework**: Spring Boot 3.3.4
-- **Security**: Spring Security with Stateless JWT (`io.jsonwebtoken:jjwt 0.12.6`)
-- **Data & Persistence**: Spring Data JPA, Hibernate, HikariCP
-- **Database Migrations**: Flyway 10
-- **API Documentation**: Springdoc OpenAPI 3 / Swagger UI 2.6.0
-- **Validation**: Jakarta Bean Validation
-- **Testing**: JUnit 5, Mockito, Spring Security Test, H2 In-Memory Database (21 tests)
-
-### Database & Infrastructure
-- **Database**: PostgreSQL 16 Alpine
-- **Containerization**: Multi-stage Dockerfiles (`node:20-alpine` + `nginx:alpine` for frontend, `maven:3.9-eclipse-temurin-17` + `eclipse-temurin:17-jre-alpine` for backend)
-- **Orchestration**: Docker Compose v2
+| Container / Service | Port (Host:Container) | Description / Role | Health / Status |
+| :--- | :--- | :--- | :--- |
+| **`petstore-customer-frontend`** | `5173:80` | Customer Web Storefront (React + TypeScript + Vite) | Running |
+| **`petstore-admin-frontend`** | `5174:80` | Admin Operations Portal (React + TypeScript + Vite) | Running |
+| **`petstore-api-gateway`** | `8080:8080` | API Gateway + Rate Limiting + Correlation ID | Healthy |
+| **`petstore-user-service`** | `8081:8081` | Authentication, JWT, Users & Address Books | Healthy |
+| **`petstore-catalog-service`** | `8082:8082` | Products, Categories, Stock Query | Healthy |
+| **`petstore-order-service`** | `8083:8083` | Carts, Orders, Outbox Publisher, Resilience4j | Healthy |
+| **`petstore-inventory-service`**| `8084:8084` | Stock Reservations, Inventory Outbox, Stock Audits | Healthy |
+| **`petstore-notification-service`**| `8085:8085` | Kafka Consumer & Notifications, DLT Handler | Healthy |
+| **`petstore-postgres`** | `5432:5432` | PostgreSQL 16 (Isolated DB per service) | Healthy |
+| **`petstore-kafka`** | `9092:9092` | Apache Kafka 3.7.0 (KRaft Mode) | Healthy |
+| **`petstore-cloudbeaver`** | `8978:8978` | Database Management Web Console | Running |
+| **`petstore-elasticsearch`** | `9200:9200` | Elasticsearch 8.11.3 (Log search & storage) | Healthy |
+| **`petstore-logstash`** | `5001:5000` | Logstash 8.11.3 (TCP JSON ingestion pipeline) | Running |
+| **`petstore-kibana`** | `5601:5601` | Kibana 8.11.3 (Log visualization & search) | Running |
+| **`petstore-otel-collector`** | `4317, 4318` | OpenTelemetry Collector (OTLP gRPC & HTTP) | Running |
+| **`petstore-prometheus`** | `9090:9090` | Prometheus 2.51.0 (Scrapes metrics at 5s interval)| Running |
+| **`petstore-grafana`** | `3000:3000` | Grafana 10.4.0 (Pre-provisioned dashboards) | Running |
 
 ---
 
-## 📁 Repository Structure
+## 🔍 Observability & Monitoring Infrastructure
 
-```text
-pet-store/
-├── backend/
-│   ├── src/main/java/com/petstore/
-│   │   ├── common/           # Global exception handler, ApiResponse envelope, CORS, Security config
-│   │   ├── auth/             # Customer registration, login, JWT token provider & authentication filter
-│   │   ├── category/         # Hierarchical category tree entity, repository & descendant resolution
-│   │   ├── product/          # Product catalog, dynamic JPA Specification filtering, images
-│   │   ├── inventory/        # Concurrency-safe pessimistic write lock inventory service
-│   │   ├── cart/             # Shopping cart entities, DTOs & stock validation service
-│   │   ├── address/          # Customer delivery address management (CRUD, default switching)
-│   │   ├── order/            # Transactional COD checkout, order history, cancellation & restock
-│   │   └── storage/          # GCS & Local image storage abstraction
-│   ├── src/main/resources/
-│   │   ├── application.yml   # PostgreSQL, Flyway, JWT & CORS configuration
-│   │   └── db/migration/     # Flyway SQL migrations
-│   │       ├── V1__create_tables.sql
-│   │       ├── V2__insert_categories.sql
-│   │       └── V3__insert_products.sql
-│   ├── src/test/             # 21 comprehensive JUnit 5 & Mockito test suites
-│   ├── .dockerignore
-│   ├── Dockerfile            # Multi-stage Maven build + lightweight JRE 17 runtime
-│   └── pom.xml
-│
-├── frontend/
-│   ├── src/
-│   │   ├── assets/           # Icons, brand marks, and SVG assets
-│   │   ├── components/       # Navbar, Footer, ProductCard, CategoryFilter, Toast, Modals
-│   │   ├── context/          # AuthContext, CartContext, ToastContext
-│   │   ├── pages/            # Home, Catalog, ProductDetail, Cart, Checkout, Orders, Addresses, Profile, Auth
-│   │   ├── services/         # Axios API clients (auth, products, categories, cart, orders, addresses)
-│   │   ├── types/            # TypeScript interfaces & API payload types
-│   │   ├── App.tsx           # Route definitions & layout wrappers
-│   │   └── index.css         # Global CSS variables, typography, component utilities
-│   ├── nginx.conf            # Nginx reverse proxy (/api -> backend:8080) & SPA static file server
-│   ├── .dockerignore
-│   ├── Dockerfile            # Multi-stage Vite build + Nginx Alpine server
-│   ├── index.html
-│   ├── vite.config.ts
-│   └── package.json
-│
-├── docker-compose.yml        # Multi-container orchestration (PostgreSQL 16 + Backend + Frontend)
-└── README.md
-```
+### Centralized Logging (ELK Stack)
+- Access Kibana: **[http://localhost:5601](http://localhost:5601)**
+- Navigate to **Analytics &rarr; Discover** & select the pre-created **`petstore-logs-*`** data view.
+- Filter by `service`, `correlationId`, `traceId`, `spanId`, or `level`.
+
+### Distributed Tracing (OpenTelemetry)
+- Every microservice exports traces to `http://otel-collector:4318/v1/traces`.
+- Incoming HTTP requests and Kafka event messages propagate `traceparent` and correlation headers across boundaries.
+
+### Prometheus Metrics & Micrometer
+- Prometheus Web UI: **[http://localhost:9090](http://localhost:9090)**
+- View target scrape health: **[http://localhost:9090/targets](http://localhost:9090/targets)**
+- Core business metrics available:
+  - `orders_created_total`
+  - `orders_confirmed_total`
+  - `orders_cancelled_total`
+  - `outbox_pending_count`
+  - `outbox_published_total`
+  - `inventory_stock_reserved_total`
+  - `rate_limit_exceeded_total`
+
+### Grafana Pre-Provisioned Dashboards
+- Access Grafana: **[http://localhost:3000](http://localhost:3000)** (Credentials: `admin` / `admin`)
+- Dashboards are pre-loaded under the **PetStore** folder:
+  1. **Pet Store - Application Overview**: Real-time traffic, error rates, P95 latency.
+  2. **Pet Store - JVM & System Performance**: Heap, non-heap, CPU, GC pause times, HikariCP database pool.
+  3. **Pet Store - Kafka Observability & DLT**: Consumer lag, throughput, DLT message alarms.
+  4. **Pet Store - Business Metrics & Outbox Pattern**: Order volume, inventory reservations, outbox processing rates.
 
 ---
 
-## 🚀 Quick Start: Running with Docker (Recommended)
+## 🛡️ Resilience & Fault Tolerance
 
-The easiest way to run the entire application (Database, Spring Boot backend, and React frontend) is with Docker Compose.
+### Resilience4j Circuit Breakers & Retries
+Configured on `order-service` when communicating with `catalog-service`:
+- **Circuit Breaker**: Sliding window of 10 calls, trips at 50% failure rate, wait duration 5s in OPEN state.
+- **Retry**: Up to 3 attempts with exponential backoff (multiplier 2x, initial 500ms).
+- **Bulkhead**: Maximum 10 concurrent requests with 100ms max wait.
+- **Timeouts**: Socket connect timeout (3s) and read timeout (5s).
+
+### API Gateway Rate Limiting
+In-memory Token Bucket rate limiter protecting public endpoints:
+- Auth routes (`/api/auth/**`): Burst capacity 5, refill rate 1.0/sec.
+- Orders (`/api/orders/**`): Burst capacity 20, refill rate 5.0/sec.
+- Products (`/api/products/**`): Burst capacity 50, refill rate 15.0/sec.
+- When tripped, returns HTTP `429 Too Many Requests` with header `Retry-After: 30`.
+
+---
+
+## 🚀 Quick Start: Running with Docker Compose
 
 ### Prerequisites
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+- Docker Engine 20+ & Docker Compose v2+
 
-### 1. Launch All Services
-Run the following command from the root of the project:
-
+### 1. Launch the Full Stack
 ```bash
-docker compose up --build -d
+docker compose up -d --build
 ```
 
-Docker Compose will automatically:
-1. Start PostgreSQL 16 on port `5432` with a persistent volume (`postgres_data`).
-2. Wait for PostgreSQL health check (`pg_isready`) to pass.
-3. Build and launch the Spring Boot backend on port `8080`, applying Flyway migrations `V1`, `V2`, and `V3` on boot.
-4. Build the React frontend into static assets and serve it with Nginx on port `5173`.
+### 2. Verify Running Containers
+```bash
+docker compose ps
+```
+All 17 containers will report `healthy` or `running`.
 
-### 2. Access the Applications
+---
 
-| Service | Host URL | Description |
+## 🔑 Default Credentials & Access Links
+
+| Application / UI | URL | Credentials |
 | :--- | :--- | :--- |
-| **Frontend Web App** | [http://localhost:5173](http://localhost:5173) | Customer storefront, catalog, cart & checkout |
-| **Backend REST API** | [http://localhost:8080](http://localhost:8080) | Spring Boot REST API endpoints |
-| **Swagger / OpenAPI UI** | [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html) | Interactive API documentation & testing |
-| **PostgreSQL Database** | `localhost:5432` | Database: `petstoredb`, User: `postgres`, Password: `postgrespassword` |
-
-### 3. Helpful Docker Commands
-
-```bash
-# View real-time logs for all services
-docker compose logs -f
-
-# View logs for a specific service
-docker compose logs -f backend
-docker compose logs -f frontend
-docker compose logs -f postgres
-
-# Stop all containers
-docker compose down
-
-# Stop and remove all volumes (resets database)
-docker compose down -v
-
-# Connect directly to the PostgreSQL container shell
-docker exec -it petstore-postgres psql -U postgres -d petstoredb
-```
-
----
-
-## 💻 Local Bare-Metal Setup
-
-If you prefer to run services directly on your host machine for development:
-
-### Prerequisites
-- **Java**: 17+
-- **Maven**: 3.8+
-- **Node.js**: 18+ and `npm`
-- **PostgreSQL**: 16+ running locally on port `5432`
-
-### 1. Configure the Database
-Create the database in PostgreSQL:
-```bash
-createdb petstoredb
-```
-*(Default credentials expected: username `postgres`, password `postgrespassword` or configure via environment variables).*
-
-### 2. Run the Backend
-```bash
-cd backend
-mvn spring-boot:run
-```
-Flyway will automatically create tables and seed categories and products. The backend will start at `http://localhost:8080`.
-
-### 3. Run the Frontend
-In a separate terminal window:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The Vite development server will start at `http://localhost:5173` with fast hot-module reloading.
-
----
-
-## 🗄️ Database Schema & Migrations
-
-Database versioning is managed via **Flyway** in [backend/src/main/resources/db/migration/](file:///Users/chetan/projects/pet-store/backend/src/main/resources/db/migration/):
-
-1. **`V1__create_tables.sql`**:
-   - `users`: Customer accounts with hashed passwords and unique email index.
-   - `categories`: Self-referential hierarchical tree (`parent_id REFERENCES categories(id)`).
-   - `products`: Product catalog with check constraints (`stock_quantity >= 0`, `price >= 0`) and category foreign keys.
-   - `product_images`: Multi-image support with `is_primary` and `display_order`.
-   - `addresses`: Customer shipping addresses with default address flag.
-   - `carts` & `cart_items`: Unique cart per user, cascade deletion, and quantity checks.
-   - `orders` & `order_items`: Order records, status tracking (`PLACED`, `CONFIRMED`, `SHIPPED`, `DELIVERED`, `CANCELLED`), snapshot pricing, and delivery address snapshot.
-2. **`V2__insert_categories.sql`**:
-   - Seeds root categories (**Dogs** and **Cats**) and nested subcategories:
-     - Dog Food (Dry Dog Food, Wet Dog Food, Puppy Food, Dog Treats)
-     - Dog Accessories (Collars, Leashes, Harnesses, Beds, Bowls)
-     - Dog Toys & Dog Grooming
-     - Cat Food (Dry Cat Food, Wet Cat Food, Kitten Food, Cat Treats)
-     - Cat Accessories (Litter Boxes, Bowls, Beds, Carriers)
-     - Cat Toys & Cat Grooming
-3. **`V3__insert_products.sql`**:
-   - Seeds realistic pet products from top brands (*Royal Canin, Pedigree, Whiskas, Arden Grange, Furminator, KONG, Drools*) with high-resolution image URLs, descriptions, prices, and initial stock quantities.
-
----
-
-## ⚙️ Environment Variables & Configuration
-
-The application is configured via `backend/src/main/resources/application.yml` and can be customized with the following environment variables:
-
-| Environment Variable | Default Value | Description |
-| :--- | :--- | :--- |
-| `PORT` | `8080` | Backend HTTP server port |
-| `DATABASE_URL` | `jdbc:postgresql://localhost:5432/petstoredb` | JDBC connection URL (set to `jdbc:postgresql://postgres:5432/petstoredb` in Docker) |
-| `DATABASE_USERNAME` | `postgres` (in Docker) | PostgreSQL database username |
-| `DATABASE_PASSWORD` | `postgrespassword` | PostgreSQL database password |
-| `JWT_SECRET` | Base64-encoded 512-bit test secret | Secret key used for signing HS512 JWT tokens |
-| `JWT_EXPIRATION_MS` | `86400000` (24 hours) | JWT token lifespan in milliseconds |
-| `STORAGE_PROVIDER` | `gcs` | Storage provider implementation (`gcs` or `local`) |
-| `GCS_BUCKET` | `pet-store-bucket` | Target Google Cloud Storage bucket name |
-| `STORAGE_BASE_URL` | `https://storage.googleapis.com/pet-store-bucket` | Public URL prefix for image assets |
-| `CORS_ALLOWED_ORIGINS`| `http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173` | Allowed origins for cross-origin requests |
+| **Customer Storefront** | [http://localhost:5173](http://localhost:5173) | Register any customer account |
+| **Admin Portal** | [http://localhost:5174](http://localhost:5174) | `admin@petstore.com` / `Admin@123` |
+| **Grafana Dashboards** | [http://localhost:3000](http://localhost:3000) | `admin` / `admin` |
+| **Kibana Logs** | [http://localhost:5601](http://localhost:5601) | No auth required (local dev mode) |
+| **Prometheus Metrics** | [http://localhost:9090](http://localhost:9090) | No auth required |
+| **CloudBeaver DB Admin** | [http://localhost:8978](http://localhost:8978) | Configurable on first launch |
 
 ---
 
 ## 📖 Interactive API Docs (Swagger / OpenAPI 3)
 
-The backend provides interactive OpenAPI documentation via **Springdoc OpenAPI**:
-
-- **Swagger UI**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
-- **OpenAPI 3 JSON Specification**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
-
-### Authorizing in Swagger UI
-1. Execute `POST /api/auth/register` or `POST /api/auth/login` to obtain a JWT token.
-2. Click the green **Authorize 🔓** button at the top-right of the Swagger page.
-3. Paste the token into the value field and click **Authorize**.
-4. All secured endpoints (`/api/cart/**`, `/api/addresses/**`, `/api/orders/**`) will automatically include your `Bearer <token>` header.
+- **API Gateway**: `http://localhost:8080/swagger-ui.html`
+- **User Service**: `http://localhost:8081/swagger-ui/index.html`
+- **Catalog Service**: `http://localhost:8082/swagger-ui/index.html`
+- **Order Service**: `http://localhost:8083/swagger-ui/index.html`
+- **Inventory Service**: `http://localhost:8084/swagger-ui/index.html`
 
 ---
 
-## 📋 REST API Reference & cURL Examples
+## 🧪 Verification & Automated Tests
 
-### 1. Authentication
-- `POST /api/auth/register` — Register a new customer
-- `POST /api/auth/login` — Authenticate and receive a JWT token
-- `GET /api/auth/me` — Current user profile (`Bearer <token>` required)
-
-**Example Registration:**
-```bash
-curl -X POST http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Jane Doe",
-    "email": "jane@example.com",
-    "password": "Password123!",
-    "phone": "9876543210"
-  }'
-```
-
----
-
-### 2. Categories
-- `GET /api/categories` — Flat list of active categories
-- `GET /api/categories/tree` — Hierarchical category tree (Dogs & Cats hierarchies)
-- `GET /api/categories/{id}` — Category details by ID
-
-**Example Fetch Category Tree:**
-```bash
-curl -X GET http://localhost:8080/api/categories/tree
-```
-
----
-
-### 3. Products
-- `GET /api/products` — Filter products by:
-  - `pet` (e.g. `dogs`, `cats`)
-  - `categoryId` (includes descendants automatically)
-  - `brand`
-  - `minPrice` & `maxPrice`
-  - `search` (keyword search on name, description, brand)
-  - `page`, `size`, `sort`
-- `GET /api/products/{id}` — Product details with image gallery and category breadcrumb
-- `GET /api/products/brands` — Distinct brands in catalog
-
-**Example Filter Products:**
-```bash
-curl -X GET "http://localhost:8080/api/products?pet=dogs&minPrice=500&maxPrice=3000&sort=price,asc"
-```
-
----
-
-### 4. Shopping Cart *(Requires `Authorization: Bearer <token>`)*
-- `GET /api/cart` — View current customer's cart
-- `POST /api/cart/items` — Add item to cart (`{ "productId": 101, "quantity": 1 }`)
-- `PUT /api/cart/items/{id}` — Update item quantity (`{ "quantity": 3 }`)
-- `DELETE /api/cart/items/{id}` — Remove item from cart
-- `DELETE /api/cart` — Clear entire cart
-
-**Example Add to Cart:**
-```bash
-curl -X POST http://localhost:8080/api/cart/items \
-  -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"productId": 101, "quantity": 2}'
-```
-
----
-
-### 5. Delivery Addresses *(Requires `Authorization: Bearer <token>`)*
-- `GET /api/addresses` — List saved delivery addresses
-- `POST /api/addresses` — Save new address
-- `PUT /api/addresses/{id}` — Update address
-- `DELETE /api/addresses/{id}` — Delete address
-
-**Example Add Address:**
-```bash
-curl -X POST http://localhost:8080/api/addresses \
-  -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Jane Doe",
-    "phone": "9876543210",
-    "addressLine1": "Flat 402, Green Valley Apartments",
-    "addressLine2": "Indiranagar",
-    "city": "Bengaluru",
-    "state": "Karnataka",
-    "pincode": "560038",
-    "isDefault": true
-  }'
-```
-
----
-
-### 6. Orders & Checkout *(Requires `Authorization: Bearer <token>`)*
-- `POST /api/orders` — Place Cash on Delivery order from cart (`{ "addressId": 1, "paymentMethod": "COD" }`)
-- `GET /api/orders` — View customer's order history
-- `GET /api/orders/{id}` — Detailed order view with line items and status tracking
-- `POST /api/orders/{id}/cancel` — Cancel eligible order (`PLACED` or `CONFIRMED`), restoring inventory
-
-**Example Place Order:**
-```bash
-curl -X POST http://localhost:8080/api/orders \
-  -H "Authorization: Bearer <YOUR_JWT_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"addressId": 1, "paymentMethod": "COD"}'
-```
-
----
-
-## 🧪 Running Automated Tests
-
-The backend includes a comprehensive suite of **21 unit and integration tests** covering security, token generation, category tree resolution, dynamic product queries, cart operations, pessimistic write lock checkout concurrency, and order cancellation stock recovery.
-
-Run the test suite via Maven:
+Run the complete end-to-end V4 observability test suite:
 
 ```bash
-cd backend
-mvn test
+python3 scratch/test_v4_observability.py
 ```
 
-### Key Test Suites
-- `CartServiceTest`: Cart validation, adding items, quantity updates, removing items, and clearing cart.
-- `OrderServiceTest`: Concurrency-safe checkout, zero overselling, order placement, order history, and cancellation.
-- `InventoryServiceTest`: Pessimistic lock verification and stock deduction/restoration.
-- `ProductServiceTest` & `CategoryServiceTest`: Hierarchy resolution and catalog filtering.
-- `AuthServiceTest` & `JwtTokenProviderTest`: Customer registration, password hashing, and token signing/validation.
-
----
-
-## 📦 Production & Container Details
-
-### Frontend Nginx Container (`frontend/Dockerfile` & `frontend/nginx.conf`)
-- **Stage 1 (Build)**: Compiles TypeScript and builds React via `node:20-alpine` with `npm ci`.
-- **Stage 2 (Runtime)**: Runs lightweight `nginx:alpine` serving the static build.
-- **Reverse Proxy**: Internal proxy rules route `/api/*` and `/swagger-ui/*` directly to `http://backend:8080`, eliminating browser CORS issues in container environments.
-- **SPA Routing**: `try_files $uri $uri/ /index.html` ensures all client-side routes (e.g. `/cart`, `/checkout`, `/orders/12`) resolve smoothly without 404 errors on browser refresh.
-
-### Backend Container (`backend/Dockerfile`)
-- **Stage 1 (Build)**: Packages Spring Boot fat JAR with `maven:3.9-eclipse-temurin-17`.
-- **Stage 2 (Runtime)**: Executes minimal JRE on `eclipse-temurin:17-jre-alpine` running as an unprivileged user for security.
+Expected output:
+```text
+================== SUMMARY ==================
+1. Service Health & Probes: PASS
+2. Prometheus Scrapes:      PASS
+3. E2E Order & Outbox Flow: PASS
+4. Elasticsearch Logs:      PASS
+5. Gateway Rate Limiting:   PASS
+6. Grafana Dashboards:      PASS
+```
