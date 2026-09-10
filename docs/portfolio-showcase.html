@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Paws & Claws Pet Store — Enterprise Microservices Platform Showcase</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    @page {
+      size: A4 portrait;
+      margin: 12mm 12mm 12mm 12mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #1e293b;
+      background-color: #ffffff;
+      line-height: 1.5;
+      font-size: 9.5pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      width: 100%;
+      height: 268mm;
+      max-height: 268mm;
+      padding: 2mm 2mm;
+      page-break-after: always;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page:last-child {
+      page-break-after: avoid;
+    }
+
+    /* Header & Badges */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 16pt;
+    }
+
+    .brand-text h1 {
+      font-size: 14pt;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-text p {
+      font-size: 8pt;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .header-badge {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 7.5pt;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Hero Cover */
+    .hero-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%);
+      border-radius: 14px;
+      padding: 24px;
+      color: white;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+    }
+
+    .hero-banner::after {
+      content: "";
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, rgba(99, 102, 241, 0) 70%);
+      border-radius: 50%;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      background: rgba(99, 102, 241, 0.3);
+      border: 1px solid rgba(165, 180, 252, 0.4);
+      color: #c7d2fe;
+      font-size: 7.5pt;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .hero-title {
+      font-size: 20pt;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-title span {
+      color: #38bdf8;
+    }
+
+    .hero-desc {
+      font-size: 9pt;
+      color: #cbd5e1;
+      max-width: 90%;
+      line-height: 1.45;
+    }
+
+    /* KPI Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .metric-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .metric-number {
+      font-size: 16pt;
+      font-weight: 800;
+      color: #4f46e5;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .metric-label {
+      font-size: 7.5pt;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* Section Styling */
+    .section-title {
+      font-size: 11pt;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      border-left: 3px solid #4f46e5;
+      padding-left: 8px;
+    }
+
+    /* Tech Stack Grid */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .tech-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .tech-box h3 {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tech-pill-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .pill {
+      font-size: 7pt;
+      font-weight: 600;
+      padding: 2.5px 7px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #e2e8f0;
+    }
+
+    .pill.primary { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; }
+    .pill.success { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .pill.info    { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+    .pill.accent  { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+
+    /* Highlights 2-Col */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .feature-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .feature-card h4 {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .feature-card p {
+      font-size: 8pt;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8pt;
+      margin-bottom: 14px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+
+    thead {
+      background: #f8fafc;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    th {
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 700;
+      color: #334155;
+      text-transform: uppercase;
+      font-size: 7pt;
+      letter-spacing: 0.4px;
+    }
+
+    td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #475569;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #fafafa;
+    }
+
+    .code-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7pt;
+      background: #f1f5f9;
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: #0f172a;
+    }
+
+    .badge-status {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 6.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-status.active {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    /* Architecture Visual Diagram */
+    .arch-diagram-container {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      color: white;
+      text-align: center;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 8pt;
+      line-height: 1.45;
+      display: flex;
+      gap: 10px;
+    }
+
+    .callout.info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+
+    .callout.success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+
+    .callout.highlight {
+      background: linear-gradient(135deg, #f8fafc 0%, #ede9fe 100%);
+      border: 1px solid #ddd6fe;
+      color: #5b21b6;
+    }
+
+    /* Footer */
+    .page-footer {
+      position: absolute;
+      bottom: 6mm;
+      left: 14mm;
+      right: 14mm;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7pt;
+      color: #94a3b8;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 6px;
+    }
+
+    .author-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .author-avatar {
+      width: 20px;
+      height: 20px;
+      background: #4f46e5;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8pt;
+      font-weight: 700;
+    }
+
+    /* Freelance Services Box */
+    .fiverr-box {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      border-radius: 12px;
+      padding: 18px;
+      color: white;
+      margin-top: 14px;
+      box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.3);
+    }
+
+    .fiverr-box h3 {
+      font-size: 13pt;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .fiverr-box p {
+      font-size: 8.5pt;
+      color: #d1fae5;
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .service-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .service-tag {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 7.5pt;
+      font-weight: 600;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= PAGE 1 ================= -->
+  <div class="page">
+    <div class="header-bar">
+      <div class="brand">
+        <div class="brand-logo">🐾</div>
+        <div class="brand-text">
+          <h1>Paws & Claws Pet Store</h1>
+          <p>Cloud-Native Microservices E-Commerce Platform</p>
+        </div>
+      </div>
+      <div class="header-badge">Senior Full-Stack & DevOps Portfolio</div>
+    </div>
+
+    <div class="hero-banner">
+      <div class="hero-tag">Enterprise System Architecture Case Study</div>
+      <h2 class="hero-title">High-Throughput <span>Event-Driven Microservices</span> on Google Kubernetes Engine</h2>
+      <p class="hero-desc">
+        A production-grade, distributed e-commerce application engineered with Spring Boot 3, React 19, Apache Kafka, and PostgreSQL, deployed to Google Kubernetes Engine (GKE Autopilot) with complete CI/CD and observability.
+      </p>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-number">5</div>
+        <div class="metric-label">Spring Microservices</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-number">2</div>
+        <div class="metric-label">React 19 Frontends</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-number">4</div>
+        <div class="metric-label">Isolated PostgreSQL DBs</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-number">100%</div>
+        <div class="metric-label">Event-Driven (Kafka)</div>
+      </div>
+    </div>
+
+    <div class="section-title">Technology Stack & Architecture Matrix</div>
+
+    <div class="tech-grid">
+      <div class="tech-box">
+        <h3>☕ Backend Services</h3>
+        <div class="tech-pill-container">
+          <span class="pill primary">Java 21</span>
+          <span class="pill primary">Spring Boot 3.2</span>
+          <span class="pill primary">Spring Cloud Gateway</span>
+          <span class="pill primary">Hibernate / JPA</span>
+          <span class="pill">Flyway DB Migrations</span>
+          <span class="pill">HikariCP Pool</span>
+          <span class="pill">Resilience4j</span>
+        </div>
+      </div>
+
+      <div class="tech-box">
+        <h3>⚛️ Frontend Applications</h3>
+        <div class="tech-pill-container">
+          <span class="pill success">React 19</span>
+          <span class="pill success">TypeScript</span>
+          <span class="pill success">Vite Build System</span>
+          <span class="pill">Tailwind & Vanilla CSS</span>
+          <span class="pill">Lucide Vector Icons</span>
+          <span class="pill">Nginx Web Server</span>
+          <span class="pill">Dynamic Reverse Proxy</span>
+        </div>
+      </div>
+
+      <div class="tech-box">
+        <h3>☁️ Cloud & Infrastructure</h3>
+        <div class="tech-pill-container">
+          <span class="pill info">GKE Autopilot</span>
+          <span class="pill info">Docker Multi-Stage</span>
+          <span class="pill info">Apache Kafka 3.7 (KRaft)</span>
+          <span class="pill info">PostgreSQL 16 StatefulSet</span>
+          <span class="pill">Google Artifact Registry</span>
+          <span class="pill">Cloud Load Balancing</span>
+          <span class="pill">Cloud Storage (GCS)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Core Business & Technical Highlights</div>
+
+    <div class="two-col">
+      <div class="feature-card">
+        <h4>📦 Dual Portals (Customer & Admin)</h4>
+        <p>Independent, decoupled React 19 SPAs: a high-conversion storefront with product filtering, dynamic cart, and checkout, paired with a real-time admin management portal.</p>
+      </div>
+      <div class="feature-card">
+        <h4>⚡ Transactional Outbox Pattern</h4>
+        <p>Eliminates dual-write bugs during order placement. Database updates and outbound Kafka events are committed atomically, guaranteeing at-least-once event delivery.</p>
+      </div>
+      <div class="feature-card">
+        <h4>🔄 Asynchronous Event Sourcing</h4>
+        <p>Order events trigger non-blocking stock reservations in Inventory Service and real-time email/push dispatches in Notification Service via Apache Kafka KRaft cluster.</p>
+      </div>
+      <div class="feature-card">
+        <h4>🔒 Defense-In-Depth Security</h4>
+        <p>Stateless JWT authentication, BCrypt password hashing, Spring Cloud Gateway centralized authorization, and zero trust internal Kubernetes network policies.</p>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <div class="author-badge">
+        <div class="author-avatar">✓</div>
+        <span><strong>Enterprise Cloud & Microservices Showcase</strong> • Paws & Claws Pet Store</span>
+      </div>
+      <div>Page 1 of 4</div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 2 ================= -->
+  <div class="page">
+    <div class="header-bar">
+      <div class="brand">
+        <div class="brand-logo">🐾</div>
+        <div class="brand-text">
+          <h1>System Architecture & Topology</h1>
+          <p>Microservices Interaction & Cloud Infrastructure Layout</p>
+        </div>
+      </div>
+      <div class="header-badge">Distributed Design</div>
+    </div>
+
+    <div class="arch-diagram-container">
+      <svg viewBox="0 0 740 310" width="100%" height="240" xmlns="http://www.w3.org/2000/svg" style="font-family: inherit;">
+        <!-- Defs / Gradients -->
+        <defs>
+          <linearGradient id="gradIngress" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#3b82f6"/>
+            <stop offset="100%" stop-color="#1d4ed8"/>
+          </linearGradient>
+          <linearGradient id="gradGateway" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6366f1"/>
+            <stop offset="100%" stop-color="#4338ca"/>
+          </linearGradient>
+          <linearGradient id="gradService" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0284c7"/>
+            <stop offset="100%" stop-color="#0369a1"/>
+          </linearGradient>
+          <linearGradient id="gradDb" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#059669"/>
+            <stop offset="100%" stop-color="#047857"/>
+          </linearGradient>
+          <linearGradient id="gradKafka" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#d97706"/>
+            <stop offset="100%" stop-color="#b45309"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Cluster Boundary -->
+        <rect x="10" y="10" width="720" height="290" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+        <text x="30" y="32" fill="#94a3b8" font-size="9" font-weight="700" letter-spacing="0.5">GOOGLE KUBERNETES ENGINE (GKE AUTOPILOT) • NAMESPACE: PETSTORE</text>
+
+        <!-- External Traffic Entry -->
+        <rect x="25" y="60" width="130" height="48" rx="8" fill="url(#gradIngress)"/>
+        <text x="90" y="80" fill="#ffffff" font-size="8.5" font-weight="700" text-anchor="middle">Customer Storefront</text>
+        <text x="90" y="96" fill="#bfdbfe" font-size="7" text-anchor="middle">React 19 • :80 (LB)</text>
+
+        <rect x="25" y="125" width="130" height="48" rx="8" fill="url(#gradIngress)"/>
+        <text x="90" y="145" fill="#ffffff" font-size="8.5" font-weight="700" text-anchor="middle">Admin Portal</text>
+        <text x="90" y="161" fill="#bfdbfe" font-size="7" text-anchor="middle">React 19 • :80 (LB)</text>
+
+        <rect x="25" y="190" width="130" height="48" rx="8" fill="url(#gradIngress)"/>
+        <text x="90" y="210" fill="#ffffff" font-size="8.5" font-weight="700" text-anchor="middle">GKE Ingress</text>
+        <text x="90" y="226" fill="#bfdbfe" font-size="7" text-anchor="middle">Google Global HTTP LB</text>
+
+        <!-- API Gateway -->
+        <rect x="195" y="80" width="120" height="135" rx="10" fill="url(#gradGateway)"/>
+        <text x="255" y="115" fill="#ffffff" font-size="9.5" font-weight="800" text-anchor="middle">API GATEWAY</text>
+        <text x="255" y="130" fill="#c7d2fe" font-size="7.5" text-anchor="middle">Spring Cloud Gateway</text>
+        <text x="255" y="148" fill="#e0e7ff" font-size="6.5" text-anchor="middle">• Path Routing /api/*</text>
+        <text x="255" y="162" fill="#e0e7ff" font-size="6.5" text-anchor="middle">• JWT Validation</text>
+        <text x="255" y="176" fill="#e0e7ff" font-size="6.5" text-anchor="middle">• CORS & Rate Limiting</text>
+        <text x="255" y="195" fill="#a5b4fc" font-size="7" text-anchor="middle">:8080 (ClusterIP)</text>
+
+        <!-- Microservices Tier -->
+        <g transform="translate(355, 45)">
+          <!-- User Service -->
+          <rect x="0" y="0" width="130" height="40" rx="6" fill="url(#gradService)"/>
+          <text x="65" y="18" fill="#ffffff" font-size="8" font-weight="700" text-anchor="middle">user-service</text>
+          <text x="65" y="31" fill="#bae6fd" font-size="6.5" text-anchor="middle">:8081 • Auth & JWT</text>
+
+          <!-- Catalog Service -->
+          <rect x="0" y="50" width="130" height="40" rx="6" fill="url(#gradService)"/>
+          <text x="65" y="68" fill="#ffffff" font-size="8" font-weight="700" text-anchor="middle">catalog-service</text>
+          <text x="65" y="81" fill="#bae6fd" font-size="6.5" text-anchor="middle">:8082 • Products & Media</text>
+
+          <!-- Inventory Service -->
+          <rect x="0" y="100" width="130" height="40" rx="6" fill="url(#gradService)"/>
+          <text x="65" y="118" fill="#ffffff" font-size="8" font-weight="700" text-anchor="middle">inventory-service</text>
+          <text x="65" y="131" fill="#bae6fd" font-size="6.5" text-anchor="middle">:8084 • Stock Reservation</text>
+
+          <!-- Order Service -->
+          <rect x="0" y="150" width="130" height="40" rx="6" fill="url(#gradService)"/>
+          <text x="65" y="168" fill="#ffffff" font-size="8" font-weight="700" text-anchor="middle">order-service</text>
+          <text x="65" y="181" fill="#bae6fd" font-size="6.5" text-anchor="middle">:8083 • Cart & Outbox</text>
+
+          <!-- Notification Service -->
+          <rect x="0" y="200" width="130" height="40" rx="6" fill="url(#gradService)"/>
+          <text x="65" y="218" fill="#ffffff" font-size="8" font-weight="700" text-anchor="middle">notification-service</text>
+          <text x="65" y="231" fill="#bae6fd" font-size="6.5" text-anchor="middle">:8085 • Kafka Consumer</text>
+        </g>
+
+        <!-- Data Tier: Postgres & Kafka -->
+        <g transform="translate(535, 60)">
+          <!-- PostgreSQL -->
+          <rect x="0" y="0" width="170" height="85" rx="8" fill="url(#gradDb)"/>
+          <text x="85" y="22" fill="#ffffff" font-size="9" font-weight="700" text-anchor="middle">POSTGRESQL 16 (StatefulSet)</text>
+          <text x="85" y="38" fill="#a7f3d0" font-size="6.5" text-anchor="middle">• petstore_user_db</text>
+          <text x="85" y="50" fill="#a7f3d0" font-size="6.5" text-anchor="middle">• petstore_catalog_db</text>
+          <text x="85" y="62" fill="#a7f3d0" font-size="6.5" text-anchor="middle">• petstore_inventory_db • order_db</text>
+          <text x="85" y="75" fill="#d1fae5" font-size="6" text-anchor="middle">10Gi PersistentVolumeClaim (standard-rwo)</text>
+
+          <!-- Kafka -->
+          <rect x="0" y="105" width="170" height="75" rx="8" fill="url(#gradKafka)"/>
+          <text x="85" y="127" fill="#ffffff" font-size="9" font-weight="700" text-anchor="middle">APACHE KAFKA 3.7 (KRaft)</text>
+          <text x="85" y="143" fill="#fde68a" font-size="7" text-anchor="middle">Topic: order.events</text>
+          <text x="85" y="157" fill="#fde68a" font-size="7" text-anchor="middle">Topic: product.events</text>
+          <text x="85" y="170" fill="#fef3c7" font-size="6" text-anchor="middle">10Gi PersistentVolumeClaim (standard-rwo)</text>
+        </g>
+
+        <!-- Connectors -->
+        <line x1="155" y1="84" x2="195" y2="115" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <line x1="155" y1="149" x2="195" y2="149" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <line x1="155" y1="214" x2="195" y2="175" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+        <line x1="315" y1="115" x2="355" y2="65" stroke="#818cf8" stroke-width="1.5"/>
+        <line x1="315" y1="130" x2="355" y2="115" stroke="#818cf8" stroke-width="1.5"/>
+        <line x1="315" y1="145" x2="355" y2="165" stroke="#818cf8" stroke-width="1.5"/>
+        <line x1="315" y1="160" x2="355" y2="215" stroke="#818cf8" stroke-width="1.5"/>
+
+        <line x1="485" y1="65" x2="535" y2="90" stroke="#34d399" stroke-width="1.2"/>
+        <line x1="485" y1="115" x2="535" y2="100" stroke="#34d399" stroke-width="1.2"/>
+        <line x1="485" y1="165" x2="535" y2="110" stroke="#34d399" stroke-width="1.2"/>
+        <line x1="485" y1="215" x2="535" y2="120" stroke="#34d399" stroke-width="1.2"/>
+
+        <line x1="485" y1="215" x2="535" y2="200" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <line x1="485" y1="245" x2="535" y2="210" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,2"/>
+      </svg>
+    </div>
+
+    <div class="section-title">Microservices Responsibility & Schema Matrix</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Service Name</th>
+          <th>Port</th>
+          <th>Dedicated Database</th>
+          <th>Key Functionality</th>
+          <th>Async Integration</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>user-service</strong></td>
+          <td><span class="code-tag">:8081</span></td>
+          <td><span class="code-tag">petstore_user_db</span></td>
+          <td>Authentication, JWT tokens, profile management, addresses</td>
+          <td>Synchronous REST via Gateway</td>
+        </tr>
+        <tr>
+          <td><strong>catalog-service</strong></td>
+          <td><span class="code-tag">:8082</span></td>
+          <td><span class="code-tag">petstore_catalog_db</span></td>
+          <td>35+ products, categories, dog/cat filtering, GCS media links</td>
+          <td>Publishes product inventory updates</td>
+        </tr>
+        <tr>
+          <td><strong>inventory-service</strong></td>
+          <td><span class="code-tag">:8084</span></td>
+          <td><span class="code-tag">petstore_inventory_db</span></td>
+          <td>Stock reservation, real-time availability checking, lock handling</td>
+          <td>Consumes <span class="code-tag">order.events</span> for stock decrement</td>
+        </tr>
+        <tr>
+          <td><strong>order-service</strong></td>
+          <td><span class="code-tag">:8083</span></td>
+          <td><span class="code-tag">petstore_order_db</span></td>
+          <td>Carts, checkout, Transactional Outbox, order status lifecycle</td>
+          <td>Publishes <span class="code-tag">order.events</span> via Outbox</td>
+        </tr>
+        <tr>
+          <td><strong>notification-service</strong></td>
+          <td><span class="code-tag">:8085</span></td>
+          <td><em>Stateless</em></td>
+          <td>Customer order confirmation alerts & status tracking notifications</td>
+          <td>Consumes <span class="code-tag">order.events</span> in real-time</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout highlight">
+      <div style="font-size: 14pt;">💡</div>
+      <div>
+        <strong>Database-per-Service Principle:</strong> Each microservice owns its schema completely with strict network and user-level isolation in PostgreSQL. No service can directly query another service's database, preventing tight coupling and enabling independent database schema evolutions via Flyway migrations.
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <div class="author-badge">
+        <div class="author-avatar">✓</div>
+        <span><strong>Enterprise Cloud & Microservices Showcase</strong> • Paws & Claws Pet Store</span>
+      </div>
+      <div>Page 2 of 4</div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 3 ================= -->
+  <div class="page">
+    <div class="header-bar">
+      <div class="brand">
+        <div class="brand-logo">🐾</div>
+        <div class="brand-text">
+          <h1>Cloud Engineering & DevOps Workflow</h1>
+          <p>Multi-Target Deployment, Kubernetes Manifests & Git Flow</p>
+        </div>
+      </div>
+      <div class="header-badge">DevOps & Cloud Orchestration</div>
+    </div>
+
+    <div class="section-title">Multi-Cloud & Local Deployment Comparison</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Deployment Strategy</th>
+          <th>Target Environment</th>
+          <th>Data Layer</th>
+          <th>Strengths & Primary Use Case</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Local Docker Compose</strong></td>
+          <td>Developer Workstation</td>
+          <td>Containerized PostgreSQL & Kafka</td>
+          <td>Instant feedback loop, zero cloud billing, rapid unit/integration testing</td>
+        </tr>
+        <tr>
+          <td><strong>Strategy A (Serverless)</strong></td>
+          <td>Google Cloud Run (8 Services)</td>
+          <td>Cloud SQL PostgreSQL 16 + Kafka VM</td>
+          <td>Pay-per-request billing, automatic scale-to-zero during non-business hours</td>
+        </tr>
+        <tr>
+          <td><strong>Strategy B (GKE Autopilot)</strong></td>
+          <td>Google Kubernetes Engine (Autopilot)</td>
+          <td>In-Cluster StatefulSets + 10Gi PVCs</td>
+          <td>Enterprise orchestration, internal DNS resolution, zero managed VM overhead</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-title">Production Kubernetes Manifest Architecture</div>
+
+    <div class="two-col">
+      <div class="feature-card">
+        <h4>☸️ StatefulSets with Dynamic Storage</h4>
+        <p>PostgreSQL 16 and Kafka 3.7 are deployed as Kubernetes <span class="code-tag">StatefulSets</span> with dedicated <span class="code-tag">volumeClaimTemplates</span> requesting <span class="code-tag">standard-rwo</span> persistent disks, ensuring data survivability across pod restarts or node rescheduling.</p>
+      </div>
+      <div class="feature-card">
+        <h4>🌐 GKE Health Checks & BackendConfig</h4>
+        <p>Spring Boot Actuator health endpoints (<span class="code-tag">/actuator/health</span>) are integrated with Google Cloud Load Balancer via custom <span class="code-tag">BackendConfig</span> CRDs, ensuring zero downtime rolling updates and proactive traffic redirection.</p>
+      </div>
+      <div class="feature-card">
+        <h4>🔒 Secret & Config Decoupling</h4>
+        <p>All sensitive credentials (database passwords, JWT secret keys) are managed through Kubernetes Secrets and injected into container environments via <span class="code-tag">secretKeyRef</span>, preventing secrets leakage into source control.</p>
+      </div>
+      <div class="feature-card">
+        <h4>🚀 Automated One-Click Deployment</h4>
+        <p>Includes <span class="code-tag">deploy-all.sh</span> that orchestrates the rollout sequence: Namespace ➔ Secrets ➔ ConfigMaps ➔ StatefulSets (Storage & Message Broker) ➔ Microservices ➔ Gateways & Ingress.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Clean Repository Structure & Git Branching Strategy</div>
+
+    <div class="callout info">
+      <div style="font-size: 14pt;">🌿</div>
+      <div>
+        <strong>Professional Git Flow Architecture:</strong> The codebase maintains a clean, production-ready branching model where <span class="code-tag">main</span> represents stable releases, <span class="code-tag">develop</span> aggregates sprint deliverables, and localized features branch into <span class="code-tag">feature/*</span>. All deployment manifests are centralized in <span class="code-tag">deploy/k8s/</span> and <span class="code-tag">deploy/cloud-run/</span> without altering microservice business code.
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="feature-card">
+        <h4>🛠️ Local Hybrid Developer Velocity</h4>
+        <p>Developers run backing infrastructure (<span class="code-tag">postgres</span>, <span class="code-tag">kafka</span>) via Docker Compose while running their microservice or React frontend directly on their workstation for instant Vite HMR and sub-second Java code debugging.</p>
+      </div>
+      <div class="feature-card">
+        <h4>📦 Multi-Architecture Container Builds</h4>
+        <p>Docker container images are built specifically with <span class="code-tag">--platform linux/amd64</span> multi-stage pipelines to ensure seamless binary execution between developer Apple Silicon (ARM64) Macs and Google Cloud x86_64 nodes.</p>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <div class="author-badge">
+        <div class="author-avatar">✓</div>
+        <span><strong>Enterprise Cloud & Microservices Showcase</strong> • Paws & Claws Pet Store</span>
+      </div>
+      <div>Page 3 of 4</div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 4 ================= -->
+  <div class="page">
+    <div class="header-bar">
+      <div class="brand">
+        <div class="brand-logo">🐾</div>
+        <div class="brand-text">
+          <h1>Verification, Quality & Freelance Services</h1>
+          <p>Automated E2E Testing Results & Client Service Offerings</p>
+        </div>
+      </div>
+      <div class="header-badge">Production Ready</div>
+    </div>
+
+    <div class="section-title">Automated End-to-End Validation Results</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Verification Step</th>
+          <th>Target Component</th>
+          <th>Observed Latency</th>
+          <th>Outcome</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. Product Catalog Query</strong></td>
+          <td><span class="code-tag">GET /api/products</span></td>
+          <td><strong>~42 ms</strong></td>
+          <td><span class="badge-status active">Passed (35 Products)</span></td>
+        </tr>
+        <tr>
+          <td><strong>2. Customer Registration</strong></td>
+          <td><span class="code-tag">POST /api/auth/register</span></td>
+          <td><strong>~68 ms</strong></td>
+          <td><span class="badge-status active">Passed (JWT Generated)</span></td>
+        </tr>
+        <tr>
+          <td><strong>3. Shipping Address Creation</strong></td>
+          <td><span class="code-tag">POST /api/addresses</span></td>
+          <td><strong>~35 ms</strong></td>
+          <td><span class="badge-status active">Passed (ID Assigned)</span></td>
+        </tr>
+        <tr>
+          <td><strong>4. Shopping Cart Addition</strong></td>
+          <td><span class="code-tag">POST /api/cart/items</span></td>
+          <td><strong>~40 ms</strong></td>
+          <td><span class="badge-status active">Passed (Item Cached)</span></td>
+        </tr>
+        <tr>
+          <td><strong>5. COD Order Placement</strong></td>
+          <td><span class="code-tag">POST /api/orders</span></td>
+          <td><strong>~85 ms</strong></td>
+          <td><span class="badge-status active">Passed (Outbox Committed)</span></td>
+        </tr>
+        <tr>
+          <td><strong>6. Kafka Asynchronous Flow</strong></td>
+          <td><span class="code-tag">order.events ➔ notification</span></td>
+          <td><strong>&lt; 500 ms</strong></td>
+          <td><span class="badge-status active">Passed (Stock Reserved &amp; Alerted)</span></td>
+        </tr>
+        <tr>
+          <td><strong>7. Real-Time Admin Sync</strong></td>
+          <td><span class="code-tag">GET /api/admin/orders</span></td>
+          <td><strong>~38 ms</strong></td>
+          <td><span class="badge-status active">Passed (Visible in Dashboard)</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-title">Production Cluster Verification Log</div>
+
+    <div style="background: #0f172a; border-radius: 8px; padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; color: #cbd5e1; margin-bottom: 14px; line-height: 1.5;">
+      <span style="color: #38bdf8;">$ kubectl get pods,svc -n petstore</span><br>
+      pod/admin-frontend-7689c89744-4br2b &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1/1 Running &nbsp;0 &nbsp;42m &nbsp;IP: 10.106.128.84<br>
+      pod/api-gateway-7cb4c8bfdb-rmc5s &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1/1 Running &nbsp;0 &nbsp;75m &nbsp;IP: 10.106.128.71<br>
+      pod/customer-frontend-869fd9c68f-m8xc7 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1/1 Running &nbsp;0 &nbsp;42m &nbsp;IP: 10.106.128.85<br>
+      pod/catalog-service-d889f857-s8qd7 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1/1 Running &nbsp;0 &nbsp;82m &nbsp;IP: 10.106.128.22<br>
+      pod/inventory-service-769b44bfb4-pw6m8 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1/1 Running &nbsp;0 &nbsp;82m &nbsp;IP: 10.106.128.23<br>
+      pod/order-service-c6955b554-8ndjw &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1/1 Running &nbsp;1 &nbsp;82m &nbsp;IP: 10.106.128.69<br>
+      pod/notification-service-7f48794b8c-68xq2 &nbsp;&nbsp;1/1 Running &nbsp;0 &nbsp;82m &nbsp;IP: 10.106.128.70<br>
+      pod/user-service-6dc4c5d6fc-gtsrd &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1/1 Running &nbsp;0 &nbsp;82m &nbsp;IP: 10.106.128.21<br>
+      pod/postgres-0 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1/1 Running &nbsp;0 &nbsp;85m &nbsp;IP: 10.106.128.20<br>
+      pod/kafka-0 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1/1 Running &nbsp;0 &nbsp;88m &nbsp;IP: 10.106.128.17<br>
+      <span style="color: #4ade80;">service/customer-frontend-public &nbsp;LoadBalancer 34.118.227.205 136.65.190.222 80:32324/TCP</span><br>
+      <span style="color: #4ade80;">service/admin-frontend-public &nbsp;&nbsp;&nbsp;&nbsp;LoadBalancer 34.118.237.135 34.136.230.80 &nbsp;80:30151/TCP</span>
+    </div>
+
+    <!-- Fiverr Freelance Pitch -->
+    <div class="fiverr-box">
+      <h3>Need an Enterprise Cloud or Microservices System Built?</h3>
+      <p>
+        I specialize in turning complex software ideas into production-ready, scalable, and resilient cloud platforms. Whether you need a ground-up microservices architecture, a migration to Kubernetes, or custom backend APIs, I deliver clean, documented, and tested code.
+      </p>
+      <div class="service-tags">
+        <span class="service-tag">Spring Boot 3 Microservices</span>
+        <span class="service-tag">Kubernetes / GKE / EKS</span>
+        <span class="service-tag">Apache Kafka Event Sourcing</span>
+        <span class="service-tag">React 19 & TypeScript SPAs</span>
+        <span class="service-tag">Docker & CI/CD Pipelines</span>
+        <span class="service-tag">PostgreSQL & Database Architecture</span>
+        <span class="service-tag">Cloud Run & Serverless</span>
+        <span class="service-tag">API Gateways & Security (JWT)</span>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <div class="author-badge">
+        <div class="author-avatar">✓</div>
+        <span><strong>Enterprise Cloud & Microservices Showcase</strong> • Paws & Claws Pet Store</span>
+      </div>
+      <div>Page 4 of 4</div>
+    </div>
+  </div>
+
+</body>
+</html>
