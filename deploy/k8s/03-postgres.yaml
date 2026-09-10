@@ -42,6 +42,8 @@ spec:
           image: postgres:16-alpine
           imagePullPolicy: IfNotPresent
           env:
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
             - name: POSTGRES_DB
               value: "postgres"
             - name: POSTGRES_USER
