@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: petstore
+data:
+  init-databases.sh: |
+    #!/bin/bash
+    set -e
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+        SELECT 'CREATE DATABASE petstore_user_db' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'petstore_user_db')\gexec
+        SELECT 'CREATE DATABASE petstore_catalog_db' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'petstore_catalog_db')\gexec
+        SELECT 'CREATE DATABASE petstore_order_db' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'petstore_order_db')\gexec
+        SELECT 'CREATE DATABASE petstore_inventory_db' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'petstore_inventory_db')\gexec
+        GRANT ALL PRIVILEGES ON DATABASE petstore_user_db TO $POSTGRES_USER;
+        GRANT ALL PRIVILEGES ON DATABASE petstore_catalog_db TO $POSTGRES_USER;
+        GRANT ALL PRIVILEGES ON DATABASE petstore_order_db TO $POSTGRES_USER;
+        GRANT ALL PRIVILEGES ON DATABASE petstore_inventory_db TO $POSTGRES_USER;
+    EOSQL
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: petstore
+  labels:
+    app: postgres
+    app.kubernetes.io/part-of: petstore-platform
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+            - name: POSTGRES_DB
+              value: "postgres"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: petstore-secrets
+                  key: postgres-password
+          ports:
+            - containerPort: 5432
+              name: postgres
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - postgres
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: init-script
+          configMap:
+            name: postgres-init-script
+            defaultMode: 0755
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: petstore
+  labels:
+    app: postgres
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres
+  selector:
+    app: postgres
