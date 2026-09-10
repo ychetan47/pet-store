@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: petstore
+  labels:
+    app.kubernetes.io/name: petstore
+    app.kubernetes.io/part-of: petstore-platform
