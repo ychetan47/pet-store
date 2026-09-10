@@ -19,7 +19,7 @@ spec:
       containers:
         - name: customer-frontend
           image: us-central1-docker.pkg.dev/petstore-app-1788943786/petstore-repo/customer-frontend:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
               name: http
